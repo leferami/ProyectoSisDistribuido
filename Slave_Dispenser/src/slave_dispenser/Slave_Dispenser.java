@@ -17,16 +17,17 @@ import java.util.logging.Logger;
  */
 public class Slave_Dispenser {
     public enum ProductorAction {
-        
+        //Mensajes que envia el productor al consumidor
         DISPENSADOR("EL DISPENSADOR DE ALIMENTO ESTA VACIO"),
         PROGRESO("PROCESANDO...");
         
+        //Accion del productor
         private final String productorAction;
-
+        //Constructor de la accion del productor
         private ProductorAction(String productorAction) {
             this.productorAction = productorAction;
         }
-
+        //Obtener el string del mensaje que pasa el consumidor
         public String getActionAsString() {
             return this.productorAction;
         }
@@ -39,17 +40,15 @@ public class Slave_Dispenser {
     private static final String DESTINATION_QUEUE = "DISPENSADORES.QUEUE";
     private static final boolean TRANSACTED_SESSION = true;
         
-    private static final int CAPACITY_DISPENSER = 20;
-    private static final int NUMBER_SLAVE = 3;
-    public Slave[] arr = new Slave[NUMBER_SLAVE];
-    public Slave_Dispenser messageSender;
+    private static final int CAPACITY_DISPENSER = 20;               //Capacidad de los dispensadores
+    private static final int NUMBER_SLAVE = 3;                      //Cantidad de dispensadores esclavo
+    public Slave[] dispensers_slaves = new Slave[NUMBER_SLAVE];     //Arreglo de dispensadores esclavos
+    public Slave_Dispenser messageSender;                           
     
-    private static Session session = null;
-    private static Destination destination = null;
-    private static MessageProducer producer = null;
-    
-    int num = 0;
-    
+    private static Session session = null;                          //Declaracion de la Session
+    private static Destination destination = null;                  //Declaracion de la destination
+    private static MessageProducer producer = null;                 //Declaracion de la producer
+        
     public void sendMessages() throws JMSException {
 
         final ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(USER, PASSWORD, URL);
@@ -72,36 +71,49 @@ public class Slave_Dispenser {
     }
     
     public class MyThread implements Runnable {
-        int n;
+        int indice;
         public MyThread(int parameter) {
             // store parameter for later user
-            n = parameter;
+            indice = parameter;
         }
 
+        @Override
         public void run() {
-            int random_porcion = 0;
-            int value_new = 0;
-            int capacidad = 0;
-            capacidad = arr[n].getCapacidad();
+            int random_porcion = 0, capacidad = 0;
+            //Obtengo la capacidad del dispensador
+            capacidad = dispensers_slaves[indice].getCapacidad();
             while(capacidad > 0){
-                random_porcion = randInt(1, 4);
-                capacidad = capacidad - random_porcion;
-                arr[n].setCapacidad(capacidad);
-                if (arr[n].getCapacidad() < 1) {
+                random_porcion = randInt(1, 4);                         //Simular el comportamiento de un dispensador   
+                capacidad = capacidad - random_porcion;                 //Obtengo la capacidad actual
+                dispensers_slaves[indice].setCapacidad(capacidad);      //Guarda la capacidad actual
+                
+                int id = dispensers_slaves[indice].getId();
+                int actual_capac = dispensers_slaves[indice].getCapacidad();
+                    
+                    
+                if (dispensers_slaves[indice].getCapacidad() < 1) {
                     final ProductorAction productorActionToSend = ProductorAction.values()[0];
-                    System.out.println(arr[n].getId()+"   Mensajes Terminado: "+productorActionToSend.getActionAsString());
+                    String comentario = productorActionToSend.getActionAsString();
+                    String mensaje_productor = id+"+"+actual_capac+"+"+comentario;
+                    System.out.println(dispensers_slaves[indice].getId()+"   Mensajes: "+mensaje_productor);
 
                     try {
+                        //Envia el mensaje para que se consuma.
                         messageSender.sendMessage(productorActionToSend.getActionAsString(), session, producer);
                     } catch (JMSException ex) {
                         Logger.getLogger(Slave_Dispenser.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }else{
+                    //Obtengo el mensaje correspondiente por el productor
                     final ProductorAction productorActionToSend = ProductorAction.values()[1];
-                    System.out.println(arr[n].getId()+"  Mensajes Terminado: "+productorActionToSend.getActionAsString());
+                    String comentario = productorActionToSend.getActionAsString();
+                    String mensaje_productor = id+"+"+actual_capac+"+"+comentario;
+                    System.out.println(dispensers_slaves[indice].getId()+"  Mensajes: "+mensaje_productor);
 
                     try {
-                        messageSender.sendMessage(productorActionToSend.getActionAsString(), session, producer);
+                        
+                        //Envia el mensaje para que se consuma.
+                        messageSender.sendMessage(mensaje_productor, session, producer);
                     } catch (JMSException ex) {
                         Logger.getLogger(Slave_Dispenser.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -113,20 +125,21 @@ public class Slave_Dispenser {
     private void sendMessages(Session session, MessageProducer producer) throws JMSException {
         
         messageSender = new Slave_Dispenser();
-        
+        //Setea el numero de Dispensadores con ID, CAPACIDAD
         for( int i=0; i<NUMBER_SLAVE; i++ ){
-            arr[i] = new Slave(i, CAPACITY_DISPENSER);
+            dispensers_slaves[i] = new Slave(i, CAPACITY_DISPENSER);
         }
-        
+        //Crea la cantidad de hilo con el numero de dispensadores
         Thread[] threads = new Thread[NUMBER_SLAVE];
-        for (num=0; num<NUMBER_SLAVE; num++ ) {
+        for (int num = 0; num < NUMBER_SLAVE; num++ ) {
             Runnable r = new MyThread(num);
             threads[num] = new Thread(r);
         }
-        
+        //Recorrer todos los hilos para iniciar su ejecucion
         for (Thread thread : threads ) {
             thread.start(); 
         }
+        //Recorrer todos los hilos para esperarlos y terminar su ejecucion
         for (Thread thread : threads) {
             try {
                 thread.join();
@@ -140,12 +153,7 @@ public class Slave_Dispenser {
         final TextMessage textMessage = session.createTextMessage(message);
         producer.send(textMessage);
     }
-
-    private static ProductorAction getRandomUserAction() {
-        final int userActionNumber = (int) (RANDOM.nextFloat() * ProductorAction.values().length);
-        return ProductorAction.values()[userActionNumber];
-    }
-    
+    //Funcion para hallar el random entre dos numeros
     public static int randInt(int min, int max) {
         Random rand = new Random();
         int randomNum = rand.nextInt((max - min) + 1) + min;
