@@ -9,6 +9,7 @@ package Consumer_Client;
  *
  * @author josanvel
  */
+import java.util.ArrayList;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import javax.jms.*;
@@ -21,13 +22,15 @@ public class Consumer_Client {
 
    private static final String PASSWORD = ActiveMQConnection.DEFAULT_PASSWORD;
 
-   private static final String DESTINATION_QUEUE = "APLICATION1.QUEUE";
+   private static final String DESTINATION_QUEUE = "DISPENSADORES.QUEUE";
 
    private static final boolean TRANSACTED_SESSION = false;
    private static final int TIMEOUT = 1000;
    private final Map<String, Integer> consumedMessageTypes;
 
    private int totalConsumedMessages = 0;
+   
+   ArrayList<SlaveConsume> dispensers = new ArrayList<>();
    
   public Consumer_Client() {
         this.consumedMessageTypes = new HashMap<String, Integer>();
@@ -66,27 +69,34 @@ public class Consumer_Client {
             final String text = textMessage.getText();
             incrementMessageType(text);
             totalConsumedMessages++;
+            //String str = "This is a sentence.  This is a question, right?  Yes!  It is.";
+          
+
         }
     }
 
     private void incrementMessageType(String message) {
         if (consumedMessageTypes.get(message) == null) {
             consumedMessageTypes.put(message, 1);
-        } else {
-            final int numberOfTypeMessages = consumedMessageTypes.get(message);
-            consumedMessageTypes.put(message, numberOfTypeMessages + 1);
         }
     }
-
+    
     private void showProcessedResults() {
         System.out.println("Procesados un total de " + totalConsumedMessages + " mensajes");
+        SlaveConsume cosume;
         for (String messageType : consumedMessageTypes.keySet()) {
             final int numberOfTypeMessages = consumedMessageTypes.get(messageType);
-            System.out.println("Tipo " + messageType + " Procesados " + numberOfTypeMessages + " (" +
-                    (numberOfTypeMessages * 100 / totalConsumedMessages) + "%)");
+           // System.out.println("Tipo " + messageType + " Procesados " + numberOfTypeMessages + " (" +
+             //       (numberOfTypeMessages * 100 / totalConsumedMessages) + "%)");
+            String delims = ("/");
+            String[] tokens = messageType.split(delims);
+            cosume = new SlaveConsume(Integer.parseInt(tokens[0]),Integer.parseInt(tokens[1]),tokens[2]);
+            dispensers.add(cosume);
+            System.out.println(cosume.getEstado());
+    
         }
     }
-
+    
     public static void main(String[] args) throws JMSException {
         final Consumer_Client userActionConsumer = new Consumer_Client();
         userActionConsumer.processMessages();

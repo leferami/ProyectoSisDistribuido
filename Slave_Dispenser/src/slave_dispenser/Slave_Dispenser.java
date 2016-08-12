@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public class Slave_Dispenser {
     public enum ProductorAction {
         //Mensajes que envia el productor al consumidor
-        DISPENSADOR("EL DISPENSADOR DE ALIMENTO ESTA VACIO"),
+        DISPENSADOR("VACIO"),
         PROGRESO("PROCESANDO...");
         
         //Accion del productor
@@ -94,12 +94,12 @@ public class Slave_Dispenser {
                 if (dispensers_slaves[indice].getCapacidad() < 1) {
                     final ProductorAction productorActionToSend = ProductorAction.values()[0];
                     String comentario = productorActionToSend.getActionAsString();
-                    String mensaje_productor = id+"+"+actual_capac+"+"+comentario;
+                    String mensaje_productor = id+"/"+actual_capac+"/"+comentario;
                     System.out.println(dispensers_slaves[indice].getId()+"   Mensajes: "+mensaje_productor);
 
                     try {
                         //Envia el mensaje para que se consuma.
-                        messageSender.sendMessage(productorActionToSend.getActionAsString(), session, producer);
+                        messageSender.sendMessage(mensaje_productor, session, producer);
                     } catch (JMSException ex) {
                         Logger.getLogger(Slave_Dispenser.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -107,7 +107,7 @@ public class Slave_Dispenser {
                     //Obtengo el mensaje correspondiente por el productor
                     final ProductorAction productorActionToSend = ProductorAction.values()[1];
                     String comentario = productorActionToSend.getActionAsString();
-                    String mensaje_productor = id+"+"+actual_capac+"+"+comentario;
+                    String mensaje_productor = id+"/"+actual_capac+"/"+comentario;
                     System.out.println(dispensers_slaves[indice].getId()+"  Mensajes: "+mensaje_productor);
 
                     try {
