@@ -31,3 +31,5 @@
 # Debug files
 *.dSYM/
 *.su
+/Slave_Dispenser/build/
+/Slave_Dispenser/dist/
