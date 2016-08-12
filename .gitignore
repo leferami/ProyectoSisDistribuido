@@ -10,4 +10,8 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+<<<<<<< HEAD
 /Consumer_Client/build/
+=======
+/Slave_Dispenser/dist/
+>>>>>>> 6b955f65baea81ccdd2d8f2c799997800aaf146e
