@@ -10,7 +10,7 @@ import javax.jms.*;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import java.util.Scanner;
 /**
  *
  * @author josanvel
@@ -94,12 +94,12 @@ public class Slave_Dispenser {
                 if (dispensers_slaves[indice].getCapacidad() < 1) {
                     final ProductorAction productorActionToSend = ProductorAction.values()[0];
                     String comentario = productorActionToSend.getActionAsString();
-                    String mensaje_productor = id+"+"+actual_capac+"+"+comentario;
-                    System.out.println(dispensers_slaves[indice].getId()+"   Mensajes: "+mensaje_productor);
+                    String mensaje_productor = id+"/"+actual_capac+"/"+comentario;
+                    System.out.println(dispensers_slaves[indice].getId()+" Mensajes: "+mensaje_productor);
 
                     try {
                         //Envia el mensaje para que se consuma.
-                        messageSender.sendMessage(productorActionToSend.getActionAsString(), session, producer);
+                        messageSender.sendMessage(mensaje_productor, session, producer);
                     } catch (JMSException ex) {
                         Logger.getLogger(Slave_Dispenser.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -107,11 +107,10 @@ public class Slave_Dispenser {
                     //Obtengo el mensaje correspondiente por el productor
                     final ProductorAction productorActionToSend = ProductorAction.values()[1];
                     String comentario = productorActionToSend.getActionAsString();
-                    String mensaje_productor = id+"+"+actual_capac+"+"+comentario;
-                    System.out.println(dispensers_slaves[indice].getId()+"  Mensajes: "+mensaje_productor);
+                    String mensaje_productor = id+"/"+actual_capac+"/"+comentario;
+                    System.out.println(dispensers_slaves[indice].getId()+" Mensajes: "+mensaje_productor);
 
                     try {
-                        
                         //Envia el mensaje para que se consuma.
                         messageSender.sendMessage(mensaje_productor, session, producer);
                     } catch (JMSException ex) {
@@ -160,7 +159,35 @@ public class Slave_Dispenser {
         return randomNum;
     }
     
+    public static void menu(){
+        System.out.println("\n\to*****************************************************************o");
+        System.out.println("\to\t\tProyecto de Sistemas Distribuidos\t\t  o");                      
+        System.out.println("\to\tSistema distribuido para un conjunto de dispensador       o");
+        System.out.println("\to\t de alimentos para animales domestico.                    o");
+        System.out.println("\to\t\t\tLeonel FERNADO Ramirez Gonzalez           o");
+        System.out.println("\to\t\t\tJose Antonio Velez Gomez                  o");
+        System.out.println("\to*****************************************************************o\n\t");
+        
+    }
     public static void main(String[] args) throws JMSException {
+        Scanner sc_no_slaves, sc_capacity_dispenser, sc_destination_queue;
+        int no_slaves, capacity_dispenser, destination_queue;
+        String name_queue;
+        
+        menu();
+     
+        System.out.print("\tIngrese la cantidad de dispensadores:  ");
+        sc_no_slaves = new Scanner(System.in);
+        no_slaves = sc_no_slaves.nextInt();
+        
+        System.out.print("\tIngrese la capacidad de los dispensadores:  ");
+        sc_capacity_dispenser = new Scanner(System.in);
+        capacity_dispenser = sc_capacity_dispenser.nextInt();
+        
+        System.out.print("\tIngrese el nombre de la cola:  ");
+        sc_destination_queue = new Scanner(System.in);
+        name_queue = sc_destination_queue.nextLine();
+        
         final Slave_Dispenser messageSender = new Slave_Dispenser();
         messageSender.sendMessages();
     }   
