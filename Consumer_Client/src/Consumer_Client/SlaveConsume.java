@@ -42,4 +42,7 @@ public class SlaveConsume {
     public void setCapacidad(int capacidad) {
         this.capacidad = capacidad;
     }  
+    
+    
+    
 }

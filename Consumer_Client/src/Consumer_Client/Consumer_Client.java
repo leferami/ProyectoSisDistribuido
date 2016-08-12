@@ -10,10 +10,14 @@ package Consumer_Client;
  * @author josanvel
  */
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import javax.jms.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Consumer_Client {
@@ -30,7 +34,7 @@ public class Consumer_Client {
 
    private int totalConsumedMessages = 0;
    
-   ArrayList<SlaveConsume> dispensers = new ArrayList<>();
+   List<SlaveConsume> dispensers = new ArrayList<>();
    
   public Consumer_Client() {
         this.consumedMessageTypes = new HashMap<String, Integer>();
@@ -45,33 +49,41 @@ public class Consumer_Client {
 
         final Session session = connection.createSession(TRANSACTED_SESSION, Session.AUTO_ACKNOWLEDGE);
         final Destination destination = session.createQueue(DESTINATION_QUEUE);
-        final MessageConsumer consumer = session.createConsumer(destination);
-
-        processAllMessagesInQueue(consumer);
-
-        consumer.close();
+        //final MessageConsumer consumer = session.createConsumer(destination);
+       
+        //consumer.close();
+        boolean var = true;
+        int i = 0;
+        while(var){
+            QueueBrowser queueConsumer = session.createBrowser((Queue) destination);
+            processAllMessagesInQueue(queueConsumer,i); 
+            queueConsumer.close();
+            i++;
+        }
         session.close();
         connection.close();
 
-        showProcessedResults();
+        //showProcessedResults();
     }
 
-    private void processAllMessagesInQueue(MessageConsumer consumer) throws JMSException {
-        Message message;
-        while ((message = consumer.receive(TIMEOUT)) != null) {
-            proccessMessage(message);
+    private void processAllMessagesInQueue(QueueBrowser queueConsumer,int i) throws JMSException {
+        Enumeration<?> messagesInQueue = queueConsumer.getEnumeration();
+        
+        while (messagesInQueue.hasMoreElements()) {
+            Message msjConsumer = (Message) messagesInQueue.nextElement();
+            proccessMessage(msjConsumer,i);
         }
     }
 
-    private void proccessMessage(Message message) throws JMSException {
+    private void proccessMessage(Message message,int i) throws JMSException {
         if (message instanceof TextMessage) {
-            final TextMessage textMessage = (TextMessage) message;
-            final String text = textMessage.getText();
-            incrementMessageType(text);
-            totalConsumedMessages++;
-            //String str = "This is a sentence.  This is a question, right?  Yes!  It is.";
-          
-
+            TextMessage textMessage = (TextMessage) message;
+            String text = textMessage.getText();
+            if (i==0){
+                incrementMessageType(text);
+                totalConsumedMessages++;
+                showProcessedResults();
+            }
         }
     }
 
@@ -83,17 +95,38 @@ public class Consumer_Client {
     
     private void showProcessedResults() {
         System.out.println("Procesados un total de " + totalConsumedMessages + " mensajes");
-        SlaveConsume cosume;
+        SlaveConsume consumer, lastConsumer;
+        
         for (String messageType : consumedMessageTypes.keySet()) {
             final int numberOfTypeMessages = consumedMessageTypes.get(messageType);
            // System.out.println("Tipo " + messageType + " Procesados " + numberOfTypeMessages + " (" +
              //       (numberOfTypeMessages * 100 / totalConsumedMessages) + "%)");
             String delims = ("/");
             String[] tokens = messageType.split(delims);
-            cosume = new SlaveConsume(Integer.parseInt(tokens[0]),Integer.parseInt(tokens[1]),tokens[2]);
-            dispensers.add(cosume);
-            System.out.println(cosume.getEstado());
-    
+            consumer = new SlaveConsume(Integer.parseInt(tokens[0]),Integer.parseInt(tokens[1]),tokens[2]);
+            dispensers.add(consumer); 
+           Collections.sort(dispensers, new Comparator<SlaveConsume>(){
+                @Override
+                public int compare(SlaveConsume o1, SlaveConsume o2) {
+                 return new Integer(o1.getId()).compareTo(o2.getId());
+                }              
+           });
+            lastConsumer = dispensers.get(dispensers.size()-1);
+            for (int i = 0; i <=lastConsumer.getId() ; i++) {
+                
+            }
+            for (SlaveConsume dispenser : dispensers) {
+                int cont=0,con1=0;
+                if (dispenser.getId()<= lastConsumer.getId()){
+                    if(cont==dispenser.getId()){
+                        
+                        System.out.println("S"+con1+"  "+dispenser.getEstado());
+                        con1++;
+                    }
+                    cont++;
+                }
+            }
+            //System.out.println(consumer.getCapacidad());
         }
     }
     
