@@ -42,6 +42,11 @@ public class SlaveConsume {
     public void setCapacidad(int capacidad) {
         this.capacidad = capacidad;
     }  
+
+    @Override
+    public String toString() {
+        return "Dispensador: " + "id=" + id + ", capacidad =  " + capacidad + " , estado =" + estado;
+    }
     
     
     

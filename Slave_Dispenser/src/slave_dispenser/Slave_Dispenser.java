@@ -18,8 +18,8 @@ import java.util.Scanner;
 public class Slave_Dispenser {
     public enum ProductorAction {
         //Mensajes que envia el productor al consumidor
-        DISPENSADOR("VACIO"),
-        PROGRESO("PROCESANDO...");
+        DISPENSADOR(" EL DISPENSADOR DE ALIMENTO ESTA VACIO"),
+        PROGRESO(" PROCESANDO...");
         
         //Accion del productor
         private final String productorAction;
