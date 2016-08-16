@@ -40,10 +40,7 @@ public class Slave_Dispenser {
     private static final String DESTINATION_QUEUE = "DISPENSADORES.QUEUE";
     private static final boolean TRANSACTED_SESSION = true;
         
-    //private static final int CAPACITY_DISPENSER = 20;               //Capacidad de los dispensadores
-    //private static final int NUMBER_SLAVE = 3;                      //Cantidad de dispensadores esclavo
     public Slave[] dispensers_slaves = new Slave[NUMBER_SLAVE];     //Arreglo de dispensadores esclavos
-    public Slave[] dispensers_master = new Slave[NUMBER_MASTER];     //Arreglo de dispensadores esclavos
     public Slave_Dispenser messageSender;                           
     
     private static Session session = null;                          //Declaracion de la Session
@@ -58,6 +55,7 @@ public class Slave_Dispenser {
 
         final ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(USER, PASSWORD, URL);
         Connection connection = null;
+        //Verificar si la coneccion con ActiveMQ esta inicializada
         try {
             connection= connectionFactory.createConnection();
             connection.start();
@@ -65,6 +63,7 @@ public class Slave_Dispenser {
             System.out.println("ERROR: Debe inicializar el Middleware ApacheMQ");
             System.exit(0);
         }
+        //Verificar que la session ha sido creada con el servidor
         try {
            session = connection.createSession(TRANSACTED_SESSION, Session.AUTO_ACKNOWLEDGE);
             destination = session.createQueue(DESTINATION_QUEUE); 
@@ -72,7 +71,7 @@ public class Slave_Dispenser {
             System.out.println("ERROR: No se pude crear la session con el servidor");
             System.exit(0);
         }
-        
+        //Verificar que el Productor sea creado
         try {
             producer = session.createProducer(destination);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
@@ -176,6 +175,7 @@ public class Slave_Dispenser {
         final TextMessage textMessage = session.createTextMessage(message);
         producer.send(textMessage);
     }
+    
     //Funcion para hallar el random entre dos numeros
     public static int randInt(int min, int max) {
         Random rand = new Random();
@@ -236,7 +236,7 @@ public class Slave_Dispenser {
     }
     
     public static void main(String[] args) throws JMSException {
-        //Mueestra el menu
+        //Mueestra el menu del sistema
         menu();     
         //Se distribuye el dispensador-maestro y dispensadores-esclavos
         dispensadores_servidores();
