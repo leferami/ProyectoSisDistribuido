@@ -45,7 +45,7 @@ public class SlaveConsume {
 
     @Override
     public String toString() {
-        return "Dispensador: " + "id=" + id + ", capacidad =  " + capacidad + " , estado =" + estado;
+        return "Dispensador: "+ id + ", capacidad =  " + capacidad + " , estado =" + estado;
     }
     
     
