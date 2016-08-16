@@ -23,11 +23,9 @@ import java.util.Map;
 public class Consumer_Client {
    private static final String URL = "tcp://localhost:61616";
    private static final String USER = ActiveMQConnection.DEFAULT_USER;
-   private int a = 0;
    private static final String PASSWORD = ActiveMQConnection.DEFAULT_PASSWORD;
 
    private static final String DESTINATION_QUEUE = "DISPENSADORES.QUEUE";
-
    private static final boolean TRANSACTED_SESSION = false;
    private static final int TIMEOUT = 1000;
    private final Map<String, Integer> consumedMessageTypes;
@@ -40,7 +38,7 @@ public class Consumer_Client {
         this.consumedMessageTypes = new HashMap<String, Integer>();
     }
   
-   public void processMessages() throws JMSException {
+    public void processMessages() throws JMSException {
 
         final ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(USER, PASSWORD, URL);
         Connection connection = null;
@@ -92,10 +90,8 @@ public class Consumer_Client {
        
         while (messagesInQueue.hasMoreElements()) {
             Message msjConsumer = (Message) messagesInQueue.nextElement();
-            proccessMessage(msjConsumer);
-           
+            proccessMessage(msjConsumer);  
         }
-        
     }
 
     private void proccessMessage(Message message) throws JMSException {
@@ -144,6 +140,7 @@ public class Consumer_Client {
         //System.out.println("hoa"+lastConsumer.getId());
        
     }
+    
     private void showMessage(String texto){
         SlaveConsume consumer;
         String delims = ("/");
@@ -163,5 +160,4 @@ public class Consumer_Client {
         final Consumer_Client userActionConsumer = new Consumer_Client();
         userActionConsumer.processMessages();
     }
-   
 }
