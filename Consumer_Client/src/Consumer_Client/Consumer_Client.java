@@ -31,9 +31,9 @@ public class Consumer_Client {
    private static final boolean TRANSACTED_SESSION = false;
    private static final int TIMEOUT = 1000;
    private final Map<String, Integer> consumedMessageTypes;
-
    private int totalConsumedMessages = 0;
-   
+   private Session session = null;
+   private Destination destination = null;
    List<SlaveConsume> dispensers = new ArrayList<>();
    
   public Consumer_Client() {
@@ -43,14 +43,23 @@ public class Consumer_Client {
    public void processMessages() throws JMSException {
 
         final ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(USER, PASSWORD, URL);
-        final Connection connection = connectionFactory.createConnection();
-
-        connection.start();
-
-        final Session session = connection.createSession(TRANSACTED_SESSION, Session.AUTO_ACKNOWLEDGE);
-        final Destination destination = session.createQueue(DESTINATION_QUEUE);
-        //final MessageConsumer consumer = session.createConsumer(destination);
+        Connection connection = null;
+        try {
+           connection = connectionFactory.createConnection(); 
+           connection.start();
+       } catch (Exception e) {
+            System.out.println("ERROR: Debe inicializar el Middleware ApacheMQ");
+            System.exit(0);
+       }
        
+        try {
+            session = connection.createSession(TRANSACTED_SESSION, Session.AUTO_ACKNOWLEDGE);
+            destination = session.createQueue(DESTINATION_QUEUE);
+       } catch (Exception e) {
+           System.out.println("ERROR: No se pude crear la session con el servidor");
+           System.exit(0);
+       }
+        //final MessageConsumer consumer = session.createConsumer(destination);
         //consumer.close();
         boolean var = true;
         int i = 0;
@@ -63,10 +72,10 @@ public class Consumer_Client {
                 TextMessage textMessage = (TextMessage) peek;
                 String text = textMessage.getText();
                 if (i == 0) {
-                    prueba(text);
+                    showMessage(text);
                  }
             }
-            
+            System.out.println("Mensajes recibidos del dispensador\n");
             for (SlaveConsume dispenser : dispensers) {
                  System.out.println(dispenser.toString());
             }
@@ -135,7 +144,7 @@ public class Consumer_Client {
         //System.out.println("hoa"+lastConsumer.getId());
        
     }
-    private void prueba(String texto){
+    private void showMessage(String texto){
         SlaveConsume consumer;
         String delims = ("/");
         String[] tokens = texto.split(delims);
